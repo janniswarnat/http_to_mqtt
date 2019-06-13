@@ -1,0 +1,9 @@
+version: '2.3'
+
+services:
+  http_to_mqtt:
+    build:
+      context: .
+    image: janniswarnat/http_to_mqtt
+    ports:
+      - 5000:5000

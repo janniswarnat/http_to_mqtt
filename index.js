@@ -1,6 +1,7 @@
 var settings = {
     mqtt: {
         host: process.env.MQTT_HOST || '',
+        port: process.env.MQTT_PORT || '',
         user: process.env.MQTT_USER || '',
         password: process.env.MQTT_PASS || '',
         clientId: process.env.MQTT_CLIENT_ID || null
@@ -11,8 +12,10 @@ var settings = {
     },
     debug: process.env.DEBUG_MODE || false,
     auth_key: process.env.AUTH_KEY || '',
-    http_port: process.env.PORT || 5000
+    http_port: process.env.HTTP_PORT || 5000
 }
+
+console.log('Settings:',settings);
 
 var mqtt = require('mqtt');
 var express = require('express');
@@ -25,17 +28,38 @@ function getMqttClient() {
 
     var options = {
         username: settings.mqtt.user,
-        password: settings.mqtt.password
+        password: settings.mqtt.password,
+        servers: [{ host: settings.mqtt.host, port: settings.mqtt.port }]
     };
 
     if (settings.mqtt.clientId) {
         options.clientId = settings.mqtt.clientId
     }
 
-    return mqtt.connect(settings.mqtt.host, options);
+    return mqtt.connect(options);
 }
 
 var mqttClient = getMqttClient();
+
+mqttClient.on('connect',(connack)=>{console.log("Event connect",connack)});
+
+mqttClient.on('reconnect',()=>{console.log("Event reconnect")});
+
+mqttClient.on('close',()=>{console.log("Event close")});
+
+mqttClient.on('disconnect',()=>{console.log("Event disconnect")});
+
+mqttClient.on('offline',()=>{console.log("Event offline")});
+
+mqttClient.on('error',(error)=>{console.log("Event error",error)});
+
+mqttClient.on('end',()=>{console.log("Event end")});
+
+mqttClient.on('message',(topic, message, packet)=>{console.log("Event message",topic, message, packet)});
+
+mqttClient.on('packetsend',(packet)=>{console.log("Event packetsend",packet)});
+
+mqttClient.on('packetreceive',(packet)=>{console.log("Event packetreceive",packet)});
 
 app.set('port', settings.http_port);
 app.use(bodyParser.json());
